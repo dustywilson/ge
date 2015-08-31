@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package ge;
+
+service ge {
+  rpc Get(GetRequest) returns (Response) {}
+  rpc Set(SetRequest) returns (Response) {}
+  rpc Delete(DeleteRequest) returns (Response) {}
+  rpc DeleteDir(DeleteRequest) returns (Response) {}
+  rpc Create(SetRequest) returns (Response) {}
+  rpc CreateDir(SetRequest) returns (Response) {}
+  rpc Update(SetRequest) returns (Response) {}
+  rpc UpdateDir(SetRequest) returns (Response) {}
+  rpc Watch(WatchRequest) returns (stream Envelope) {}
+  rpc WatchOnce(WatchRequest) returns (Response) {}
+}
+
+message Envelope {
+  oneof envelope {
+    Ping ping = 1;
+    Response response = 2;
+  }
+}
+
+message Ping {
+  int64 timestamp = 1;
+}
+
+message Response {
+  bool strong_consistency = 1;
+  string action = 11;
+  Node node = 12;
+  Node prev_node = 13;
+  uint64 etcd_index = 14;
+  uint64 raft_index = 15;
+  uint64 raft_term = 16;
+}
+
+message Node {
+  string path = 11;
+  string value = 12;
+  bool dir = 13;
+  int64 expiration = 14;
+  int64 ttl = 15;
+  repeated Node nodes = 16;
+  uint64 modified_index = 17;
+  uint64 created_index = 18;
+}
+
+message GetRequest {
+  bool strong_consistency = 1;
+  string path = 11;
+  bool sort = 12;
+  bool recursive = 13;
+}
+
+message SetRequest {
+  bool strong_consistency = 1;
+  string path = 11;
+  string value = 12; // value is ignored in UpdateDir
+  uint64 ttl = 13;
+}
+
+message DeleteRequest {
+  bool strong_consistency = 1;
+  string path = 11;
+  bool recursive = 12;
+}
+
+message WatchRequest {
+  bool strong_consistency = 1;
+  string prefix = 11;
+  uint64 wait_index = 12;
+  bool recursive = 13;
+}
